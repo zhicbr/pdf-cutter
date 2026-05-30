@@ -65,15 +65,17 @@ splitButton.addEventListener('click', async () => {
 
     statusDiv.textContent = '正在处理中...';
     statusDiv.style.color = 'blue';
+    splitButton.disabled = true;
 
     try {
         const arrayBuffer = await pdfFile.arrayBuffer();
-        const pdfDoc = await PDFDocument.load(arrayBuffer);
+        const pdfDoc = await PDFDocument.load(arrayBuffer, { updateMetadata: false });
 
         const totalPages = pdfDoc.getPageCount();
         if (endPage > totalPages) {
             statusDiv.textContent = `错误：PDF总共只有 ${totalPages} 页。`;
             statusDiv.style.color = 'red';
+            splitButton.disabled = false;
             return;
         }
 
@@ -92,7 +94,7 @@ splitButton.addEventListener('click', async () => {
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = `split_${pdfFile.name}`;
+        a.download = `${startPage}-${endPage}_${pdfFile.name}`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -100,10 +102,12 @@ splitButton.addEventListener('click', async () => {
 
         statusDiv.textContent = '切割完成并已开始下载！';
         statusDiv.style.color = 'green';
+        splitButton.disabled = false;
 
     } catch (error) {
         console.error(error);
         statusDiv.textContent = '处理PDF时发生错误。';
         statusDiv.style.color = 'red';
+        splitButton.disabled = false;
     }
 });
