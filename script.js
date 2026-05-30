@@ -1,7 +1,9 @@
 const { PDFDocument } = PDFLib;
 
 const fileUpload = document.getElementById('file-upload');
+const dropZone = document.getElementById('drop-zone');
 const fileNameSpan = document.getElementById('file-name');
+const dropHint = document.getElementById('drop-hint');
 const startPageInput = document.getElementById('start-page');
 const endPageInput = document.getElementById('end-page');
 const splitButton = document.getElementById('split-button');
@@ -9,15 +11,40 @@ const statusDiv = document.getElementById('status');
 
 let pdfFile = null;
 
-fileUpload.addEventListener('change', (event) => {
-    pdfFile = event.target.files[0];
-    if (pdfFile) {
-        fileNameSpan.textContent = pdfFile.name;
+function handleFile(file) {
+    if (file && file.type === 'application/pdf') {
+        pdfFile = file;
+        fileNameSpan.textContent = file.name;
+        dropHint.textContent = '已选择文件：';
         splitButton.disabled = false;
     } else {
-        fileNameSpan.textContent = '选择PDF文件';
+        pdfFile = null;
+        fileNameSpan.textContent = '';
+        dropHint.textContent = file ? '请选择PDF文件' : '将PDF文件拖拽到此处，或点击选择文件';
         splitButton.disabled = true;
     }
+}
+
+dropZone.addEventListener('click', () => fileUpload.click());
+
+fileUpload.addEventListener('change', (event) => {
+    handleFile(event.target.files[0]);
+});
+
+dropZone.addEventListener('dragover', (event) => {
+    event.preventDefault();
+    dropZone.classList.add('border-blue-600', 'bg-blue-200');
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('border-blue-600', 'bg-blue-200');
+});
+
+dropZone.addEventListener('drop', (event) => {
+    event.preventDefault();
+    dropZone.classList.remove('border-blue-600', 'bg-blue-200');
+    const file = event.dataTransfer.files[0];
+    handleFile(file);
 });
 
 splitButton.addEventListener('click', async () => {
