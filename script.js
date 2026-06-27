@@ -2,6 +2,7 @@ const { PDFDocument } = PDFLib;
 
 const fileUpload = document.getElementById('file-upload');
 const dropZone = document.getElementById('drop-zone');
+const dropOverlay = document.getElementById('drop-overlay');
 const fileNameSpan = document.getElementById('file-name');
 const dropHint = document.getElementById('drop-hint');
 const rangesContainer = document.getElementById('ranges-container');
@@ -33,20 +34,48 @@ fileUpload.addEventListener('change', (event) => {
     handleFile(event.target.files[0]);
 });
 
-dropZone.addEventListener('dragover', (event) => {
+// ===== 全页面拖拽上传 =====
+
+let dragCounter = 0;
+
+function showOverlay() {
+    dropOverlay.classList.remove('hidden');
+    dropZone.classList.add('border-blue-600', 'bg-blue-200', 'scale-[1.02]');
+}
+
+function hideOverlay() {
+    dropOverlay.classList.add('hidden');
+    dropZone.classList.remove('border-blue-600', 'bg-blue-200', 'scale-[1.02]');
+}
+
+document.addEventListener('dragover', (event) => {
     event.preventDefault();
-    dropZone.classList.add('border-blue-600', 'bg-blue-200');
+    event.dataTransfer.dropEffect = 'copy';
 });
 
-dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('border-blue-600', 'bg-blue-200');
+document.addEventListener('dragenter', (event) => {
+    event.preventDefault();
+    dragCounter++;
+    if (dragCounter === 1) {
+        showOverlay();
+    }
 });
 
-dropZone.addEventListener('drop', (event) => {
+document.addEventListener('dragleave', (event) => {
+    dragCounter--;
+    if (dragCounter === 0) {
+        hideOverlay();
+    }
+});
+
+document.addEventListener('drop', (event) => {
     event.preventDefault();
-    dropZone.classList.remove('border-blue-600', 'bg-blue-200');
+    dragCounter = 0;
+    hideOverlay();
     const file = event.dataTransfer.files[0];
-    handleFile(file);
+    if (file) {
+        handleFile(file);
+    }
 });
 
 // ===== 页码范围管理 =====
